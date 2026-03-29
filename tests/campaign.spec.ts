@@ -1,34 +1,38 @@
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
-import * as dotenv from 'dotenv';
+import { test, expect } from '../fixtures';
+import { CampaignPage } from '../pages/CampaignPage';
+import { selectAllProductsAndAdd } from '../helpers/TableHelper';
+import { TEST_DATA } from '../data/testData';
 
-dotenv.config();
+const PROJECT_NAME = TEST_DATA.projectName;
 
 test.describe('Chiến dịch bán hàng', () => {
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    const email = process.env.USER_EMAIL || 'xuan.test@pigroup.com.vn';
-    const otp = process.env.OTP_CODE || '111111';
-    await loginPage.login(email, otp);
-  });
+  /**
+   * [Themmoi CDBH] Thêm sản phẩm vào chiến dịch bán hàng
+   * Chạy riêng: npx playwright test --grep "Themmoi CDBH"
+   */
+  test('[Themmoi CDBH] Thêm sản phẩm vào chiến dịch bán hàng', async ({ page }) => {
+    const campaignPage = new CampaignPage(page);
 
-  test('Danh sách chiến dịch - navigate và verify nút Thêm mới', async ({ page }) => {
-    // Mở rộng menu "Chiến dịch bán hàng" nếu chưa mở
-    const menuParent = page.getByRole('link', { name: /Chiến dịch bán hàng/i }).or(
-      page.locator('text=Chiến dịch bán hàng').first()
-    );
-    await menuParent.click();
+    // Tạo chiến dịch trước
+    await campaignPage.navigateToList();
+    await campaignPage.clickAddNew();
+    await campaignPage.fillCreateForm(PROJECT_NAME);
+    await campaignPage.save();
 
-    // Click "Danh sách chiến dịch" (dùng href để tránh trùng selector)
-    const menuItem = page.locator('a[href="/campaign/sales"]');
-    await menuItem.click();
+    // Verify chuyển sang màn hình Sản phẩm của chiến dịch vừa tạo
+    await expect(page).toHaveURL(/tab=product/, { timeout: 10000 });
+    await expect(page.getByRole('button', { name: 'Thêm sản phẩm' })).toBeVisible();
 
-    // Verify URL
-    await expect(page).toHaveURL(/\/campaign\/sales/);
+    // Mở dialog Thêm sản phẩm
+    await campaignPage.clickAddProduct();
 
-    // Verify nút "Thêm mới" hiển thị và có thể click
-    const themMoiBtn = page.locator('button, a').filter({ hasText: /Thêm mới/i }).first();
-    await expect(themMoiBtn).toBeVisible();
-    await expect(themMoiBtn).toBeEnabled();
+    // Chọn tất cả và thêm
+    const added = await selectAllProductsAndAdd(page);
+    if (!added) {
+      console.log('Không có sản phẩm');
+      return;
+    }
+
+    await expect(page.locator('text=Thêm sản phẩm thành công')).toBeVisible({ timeout: 10000 });
   });
 });

@@ -77,7 +77,7 @@ test.describe('Tên nhóm feature', () => {
 | Chiến dịch bán hàng | Danh sách chiến dịch | `/campaign/sales` |
 | Chiến dịch bán hàng | Đơn hàng | `/campaign/orders` |
 | Chiến dịch bán hàng | Booking group | `/campaign/booking-group` |
-| Chiến dịch bán hàng | Ráp căn | `/campaign/matching` |
+| Chiến dịch bán hàng | Ráp căn | `/campaign/booking-assemble` |
 | Dự án | *(sub items)* | `/project/...` |
 | Khách hàng | *(sub items)* | `/customer/...` |
 | Nhân viên | Phân quyền | `/staff/permissions` |
