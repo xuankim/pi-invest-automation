@@ -13,8 +13,7 @@ test.describe('Booking group', () => {
   test('[ThemMoi BG] Tạo mới đợt booking', async ({ page }) => {
     const campaignName = await getCampaignNameByProject(page, PROJECT_NAME);
     if (!campaignName) {
-      console.log(`Chưa tồn tại chiến dịch thuộc ${PROJECT_NAME} với trạng thái Sắp/Đang diễn ra — bỏ qua tạo booking`);
-      return;
+      test.skip(true, `Chưa tồn tại chiến dịch thuộc ${PROJECT_NAME} với trạng thái Sắp/Đang diễn ra`);
     }
 
     const bookingCode = Array.from({ length: 3 }, () =>

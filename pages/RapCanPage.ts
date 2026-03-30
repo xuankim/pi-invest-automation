@@ -99,8 +99,8 @@ export class RapCanPage {
   async addProducts(): Promise<boolean> {
     await this.page.locator('button, a').filter({ hasText: /Thêm SP/i }).first().click();
 
-    // Chờ panel slide-in mở ra (có tiêu đề "Thêm sản phẩm vào chiến dịch bán hàng")
-    const panel = this.page.locator('text=Thêm sản phẩm vào chiến dịch bán hàng').locator('../..');
+    // Chờ panel slide-in mở ra
+    const panel = this.page.getByRole('dialog').filter({ hasText: 'Thêm sản phẩm vào chiến dịch bán hàng' });
     await panel.waitFor({ state: 'visible', timeout: 15000 });
 
     // Chờ dữ liệu load xong
@@ -129,7 +129,7 @@ export class RapCanPage {
    */
   async configureProductsAfterAdd(discountPercent: string): Promise<void> {
     // Chờ panel đóng
-    await this.page.locator('text=Thêm sản phẩm vào chiến dịch bán hàng')
+    await this.page.getByRole('dialog').filter({ hasText: 'Thêm sản phẩm vào chiến dịch bán hàng' })
       .waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
 
     // Kiểm tra message "Còn x sản phẩm chưa nhập giá."
@@ -146,8 +146,10 @@ export class RapCanPage {
       for (let i = 0; i < rowCount; i++) {
         const priceCell = dataRows.nth(i).getByRole('cell').nth(5);
         const editBtn = priceCell.locator('button');
-        if (await editBtn.isVisible()) {
-          await editBtn.click();
+        // Chỉ click khi button visible VÀ enabled (row chưa nhập giá)
+        // force: true để bỏ qua sticky column overlay chặn pointer events
+        if (await editBtn.isVisible() && await editBtn.isEnabled()) {
+          await editBtn.click({ force: true });
           // Input xuất hiện inline trong cell sau khi click
           const priceInput = priceCell.locator('input');
           await priceInput.waitFor({ state: 'visible' });
@@ -157,9 +159,8 @@ export class RapCanPage {
       }
     }
 
-    // Nhập % chiết khấu được nhận (input bên dưới message, label "% chiết khấu được nhận")
-    await this.page.locator('text=% chiết khấu được nhận')
-      .locator('..').locator('input').fill(discountPercent);
+    // Nhập % chiết khấu được nhận (không có <label> — dùng parent container)
+    await this.page.locator('text=% chiết khấu được nhận').locator('..').getByRole('spinbutton').fill(discountPercent);
 
     // Click Áp dụng
     await this.page.getByRole('button', { name: 'Áp dụng' }).click();

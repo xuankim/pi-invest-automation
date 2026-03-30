@@ -7,8 +7,11 @@ export class CampaignPage {
 
   /** Mở menu trái → Danh sách chiến dịch */
   async navigateToList() {
-    await this.page.locator('text=Chiến dịch bán hàng').first().click();
-    await this.page.locator('a[href="/campaign/sales"]').click();
+    const link = this.page.locator('a[href="/campaign/sales"]');
+    if (!await link.isVisible()) {
+      await this.page.getByText('Chiến dịch bán hàng', { exact: true }).first().click();
+    }
+    await link.click();
     await expect(this.page).toHaveURL(/\/campaign\/sales/);
   }
 

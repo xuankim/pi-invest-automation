@@ -29,10 +29,9 @@ test.describe('Chiến dịch bán hàng', () => {
     // Chọn tất cả và thêm
     const added = await selectAllProductsAndAdd(page);
     if (!added) {
-      console.log('Không có sản phẩm');
-      return;
+      test.skip(true, 'Không có sản phẩm để thêm — bỏ qua');
     }
 
-    await expect(page.locator('text=Thêm sản phẩm thành công')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Thêm sản phẩm thành công')).toBeVisible({ timeout: 10000 });
   });
 });

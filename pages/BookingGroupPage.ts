@@ -55,15 +55,15 @@ export class BookingGroupPage {
     await this.page.locator('text=Chọn hạng thành viên').click();
     await this.page.getByRole('option', { name: data.memberTier }).click();
 
-    // Giá trị chiết khấu hạng thành viên
-    await this.page.getByRole('spinbutton').first().fill(data.memberDiscount);
+    // Giá trị chiết khấu hạng thành viên — nth(0): spinbutton đầu tiên trong form
+    await this.page.getByRole('spinbutton').nth(0).fill(data.memberDiscount);
 
     // Đơn vị chiết khấu
     await this.page.locator('text=Chọn đơn vị chiết khấu').click();
     await this.page.getByRole('option', { name: '%' }).click();
 
-    // Chiết khấu % booking chung
-    await this.page.getByRole('spinbutton').last().fill('10');
+    // Chiết khấu % booking chung — nth(1): spinbutton thứ hai trong form
+    await this.page.getByRole('spinbutton').nth(1).fill('10');
   }
 
   async save() {

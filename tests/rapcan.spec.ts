@@ -14,14 +14,12 @@ test.describe('Ráp căn', () => {
   test('[ThemMoi RC] Tạo mới đợt ráp căn', async ({ page }) => {
     const campaignName = await getCampaignNameByProject(page, PROJECT_NAME);
     if (!campaignName) {
-      console.log(`Chưa có chiến dịch hợp lệ thuộc dự án ${PROJECT_NAME} — bỏ qua tạo ráp căn`);
-      return;
+      test.skip(true, `Chưa có chiến dịch hợp lệ thuộc dự án ${PROJECT_NAME}`);
     }
 
-    const bookingInfo = await getBookingNameByCampaign(page, campaignName);
+    const bookingInfo = await getBookingNameByCampaign(page, campaignName!);
     if (!bookingInfo) {
-      console.log(`Chưa có đợt booking nào cho dự án ${PROJECT_NAME} — bỏ qua tạo ráp căn`);
-      return;
+      test.skip(true, `Chưa có đợt booking nào cho dự án ${PROJECT_NAME}`);
     }
 
     const rapCanName = `Ráp căn ${new Date().toISOString().slice(0, 10)} ${Math.floor(Math.random() * 9000 + 1000)}`;
@@ -42,8 +40,7 @@ test.describe('Ráp căn', () => {
     await rapCanPage.clickProductTab();
     const added = await rapCanPage.addProducts();
     if (!added) {
-      console.log('[ThemMoi RC] Không có sản phẩm nào để thêm');
-      return;
+      test.skip(true, 'Không có sản phẩm nào để thêm vào ráp căn');
     }
     await rapCanPage.configureProductsAfterAdd(TEST_DATA.productDiscountPercent);
   });

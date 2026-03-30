@@ -12,14 +12,13 @@ test.describe('Login', () => {
 
     await loginPage.login(email, otp);
 
-    // After login, URL should no longer be the login page
     await expect(page).not.toHaveURL(/login/);
-    console.log('Current URL after login:', page.url());
   });
 
   test('should show the login page', async ({ page }) => {
     await page.goto('/');
-    await expect(page).toHaveTitle(/.+/);
+    await expect(page).toHaveURL(/\/auth\/login/);
+    await expect(page.getByRole('button', { name: 'Đăng nhập' })).toBeVisible();
     await page.screenshot({ path: 'test-results/login-page.png', fullPage: true });
   });
 });

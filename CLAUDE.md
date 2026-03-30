@@ -87,10 +87,15 @@ test.describe('Tên nhóm feature', () => {
 
 ## Selector conventions
 
-- **Menu item có href:** `page.locator('a[href="/path"]')` ← ưu tiên dùng, tránh trùng với `<span>` cùng text
-- **Button theo text:** `page.locator('button, a').filter({ hasText: /text/i }).first()`
-- **Input:** `page.locator('input[name="..."]')` hoặc `page.locator('input#id')`
-- Khi có nhiều element trùng selector → dùng `.first()` hoặc selector chính xác hơn (href, id)
+Ưu tiên theo thứ tự:
+1. `getByRole` — semantic, gần với user nhất
+2. `getByTestId` — khi có `data-testid`
+3. `getByText` — cho text content
+4. `page.locator('a[href="/path"]')` — menu item có href
+5. `page.locator('input[name="..."]')` hoặc `input#id` — input fields
+
+- Khi có nhiều element trùng selector → dùng `.first()` hoặc selector chính xác hơn
+- **Tuyệt đối không** đặt selector trực tiếp trong file test — phải đưa vào Page Object class
 
 ---
 
@@ -109,9 +114,36 @@ npm run report          # xem HTML report
 
 Khi user nói: *"viết test cho màn hình X, click menu Y, verify Z"*, hãy:
 
-1. Tạo file `tests/<feature>.spec.ts` (hoặc thêm vào file spec đã có nếu cùng feature)
-2. Dùng `LoginPage` trong `beforeEach`
-3. Navigate bằng `a[href="..."]` (xem bảng URL mapping ở trên)
-4. Verify URL bằng `expect(page).toHaveURL(/pattern/)`
-5. Verify element bằng `toBeVisible()` và `toBeEnabled()`
-6. Chạy `npx playwright test tests/<file>.spec.ts --headed` để confirm pass
+1. **Tạo Page Object** trong `pages/<Feature>Page.ts` nếu chưa có
+   - Không đặt selector trong file test
+   - Đóng gói toàn bộ actions và locators trong class
+2. Tạo file `tests/<feature>.spec.ts` (hoặc thêm vào file spec đã có nếu cùng feature)
+3. Dùng `LoginPage` trong `beforeEach`
+4. Navigate bằng `a[href="..."]` (xem bảng URL mapping ở trên)
+5. Verify URL bằng `expect(page).toHaveURL(/pattern/)`
+6. Verify element bằng `toBeVisible()` và `toBeEnabled()`
+7. Chạy `npx playwright test tests/<file>.spec.ts --headed` để confirm pass
+
+---
+
+## Coding Standards
+
+- Dùng **Page Object Model (POM)** — mọi selector và action nằm trong `pages/`
+- **Không dùng** `waitForTimeout` (hard wait) trừ khi thực sự cần thiết
+- Dùng `async/await` nhất quán
+- Mỗi test phải **độc lập** — không phụ thuộc vào test khác
+- Tên test phải **có nghĩa**, mô tả rõ hành vi đang test
+
+## Output format khi viết/fix test
+
+Luôn trả về theo thứ tự:
+1. **Giải thích ngắn** — root cause hoặc mô tả logic
+2. **Code** — Page Object (nếu mới) + test file
+3. **Lưu ý** — nếu có edge case hoặc điều cần chú ý
+
+## Khi fix bug
+
+- Xác định **root cause** trước
+- Không thay selector bừa bãi
+- Đề xuất locator strategy tốt hơn nếu cần
+- **Không** thay đổi code không liên quan
