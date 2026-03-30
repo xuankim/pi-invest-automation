@@ -132,32 +132,53 @@ export class RapCanPage {
     await this.page.getByRole('dialog').filter({ hasText: 'Thêm sản phẩm vào chiến dịch bán hàng' })
       .waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
 
-    // Kiểm tra message "Còn x sản phẩm chưa nhập giá."
-    const unpricedMsg = this.page.locator('text=/Còn \\d+ sản phẩm chưa nhập giá/');
-    const hasUnpriced = await unpricedMsg.isVisible({ timeout: 5000 }).catch(() => false);
+    // Cột Giá = index 5 (ID=0, MaSP=1, LoaiHinh=2, Tang=3, ViTriCan=4, Gia=5)
+    // Luôn scan enabled edit buttons qua từng trang — không phụ thuộc vào message
+    const pagination = this.page.getByRole('navigation', { name: 'pagination' });
 
-    if (hasUnpriced) {
-      // Cột Giá = index 5 (ID=0, MaSP=1, LoaiHinh=2, Tang=3, ViTriCan=4, Gia=5)
-      // Mỗi row chưa nhập giá có "-" + pencil button trong cell đó
+    let hasNextPage = true;
+    while (hasNextPage) {
       const table = this.page.getByRole('table');
       const dataRows = table.getByRole('row').filter({ hasText: 'Chờ chọn căn' });
       const rowCount = await dataRows.count();
 
       for (let i = 0; i < rowCount; i++) {
         const priceCell = dataRows.nth(i).getByRole('cell').nth(5);
-        const editBtn = priceCell.locator('button');
-        // Chỉ click khi button visible VÀ enabled (row chưa nhập giá)
-        // force: true để bỏ qua sticky column overlay chặn pointer events
-        if (await editBtn.isVisible() && await editBtn.isEnabled()) {
-          await editBtn.click({ force: true });
-          // Input xuất hiện inline trong cell sau khi click
-          const priceInput = priceCell.locator('input');
-          await priceInput.waitFor({ state: 'visible' });
+        // Phân biệt row chưa nhập giá bằng cell text: chưa nhập = không có chữ số
+        // (priced cell: "20.000.000 Đ", unpriced cell: "-")
+        const cellText = await priceCell.textContent() ?? '';
+        const isUnpriced = !/\d/.test(cellText);
+
+        if (isUnpriced) {
+          // Hover row trước để kích hoạt hover state (React cần hover để enable edit mode)
+          await dataRows.nth(i).hover();
+          const editBtn = priceCell.locator('button');
+          await editBtn.waitFor({ state: 'visible' });
+          await editBtn.click();
+          // Input có thể render ngoài priceCell — scope lên table
+          const priceInput = this.page.getByRole('table').locator('input').first();
+          await priceInput.waitFor({ state: 'visible', timeout: 5000 });
           await priceInput.fill(TEST_DATA.defaultProductPrice);
           await priceInput.press('Enter');
+          // Chờ input ẩn đi (giá được lưu) trước khi sang row tiếp theo
+          await priceInput.waitFor({ state: 'hidden' }).catch(() => {});
         }
       }
+
+      // Kiểm tra nút Next page — button cuối trong pagination nav
+      const nextBtn = pagination.getByRole('button').last();
+      hasNextPage = await nextBtn.isEnabled();
+      if (hasNextPage) {
+        await nextBtn.click();
+        // Chờ trang mới load — đợi row đầu tiên xuất hiện
+        await table.getByRole('row').filter({ hasText: 'Chờ chọn căn' })
+          .first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+      }
     }
+
+    // Verify không còn sản phẩm chưa nhập giá
+    await expect(this.page.getByText(/Còn \d+ sản phẩm chưa nhập giá/)).not.toBeVisible({ timeout: 5000 })
+      .catch(() => { /* Không có message = đã nhập đủ giá */ });
 
     // Nhập % chiết khấu được nhận (không có <label> — dùng parent container)
     await this.page.locator('text=% chiết khấu được nhận').locator('..').getByRole('spinbutton').fill(discountPercent);

@@ -4,7 +4,7 @@
  */
 export const TEST_DATA = {
   /** Tên dự án dùng trong các testcase chiến dịch, booking group, v.v. */
-  projectName: 'Dự án Test',
+  projectName: 'SkyZen',
 
   /** Hạng thành viên dùng trong các testcase booking group, ráp căn, v.v. */
   memberTier: 'NEW',
