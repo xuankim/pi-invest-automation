@@ -17,12 +17,15 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     headless: false,
+    launchOptions: {
+      args: ['--start-maximized'],
+    },
+    viewport: null,
   },
 
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
     },
   ],
 });

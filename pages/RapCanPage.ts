@@ -143,17 +143,22 @@ export class RapCanPage {
       const rowCount = await dataRows.count();
 
       for (let i = 0; i < rowCount; i++) {
-        const priceCell = dataRows.nth(i).getByRole('cell').nth(5);
-        // Phân biệt row chưa nhập giá bằng cell text: chưa nhập = không có chữ số
-        // (priced cell: "20.000.000 Đ", unpriced cell: "-")
+        const row = dataRows.nth(i);
+        // Cột Giá = index 5 (ID=0, MaSP=1, LoaiHinh=2, Tang=3, ViTriCan=4, Gia=5)
+        const priceCell = row.getByRole('cell').nth(5);
         const cellText = await priceCell.textContent() ?? '';
         const isUnpriced = !/\d/.test(cellText);
 
         if (isUnpriced) {
-          // Hover row trước để kích hoạt hover state (React cần hover để enable edit mode)
-          await dataRows.nth(i).hover();
+          // Dùng mouse.move đến center của priceCell để trigger React hover state
+          // (priceCell luôn visible — button chỉ xuất hiện sau hover)
+          await priceCell.scrollIntoViewIfNeeded();
+          const box = await priceCell.boundingBox();
+          if (box) {
+            await this.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+          }
           const editBtn = priceCell.locator('button');
-          await editBtn.waitFor({ state: 'visible' });
+          await editBtn.waitFor({ state: 'visible', timeout: 5000 });
           await editBtn.click();
           // Input có thể render ngoài priceCell — scope lên table
           const priceInput = this.page.getByRole('table').locator('input').first();

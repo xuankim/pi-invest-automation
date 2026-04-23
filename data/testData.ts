@@ -20,4 +20,7 @@ export const TEST_DATA = {
 
   /** % chiết khấu được nhận tại tab Sản phẩm ráp căn */
   productDiscountPercent: '1',
+
+  /** Đơn giá Rumor (VND/m2) dùng trong form tạo chiến dịch bán hàng */
+  rumorPricePerM2: '10000000',
 };

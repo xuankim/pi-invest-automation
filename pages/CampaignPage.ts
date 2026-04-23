@@ -1,6 +1,7 @@
 import { Page, expect } from '@playwright/test';
 import { selectDateTime, selectEndOfDay } from '../helpers/DateTimePicker';
 import { generateCampaignName } from '../helpers/CampaignHelper';
+import { TEST_DATA } from '../data/testData';
 
 export class CampaignPage {
   constructor(readonly page: Page) {}
@@ -50,6 +51,15 @@ export class CampaignPage {
 
     // Mô tả
     await this.page.locator('textarea[placeholder*="Nhập mô tả"]').fill(`Đây là mô tả cho ${projectName}`);
+
+    // === Giá Rumor ===
+    // Chọn option "Tất cả" trong dropdown loại hình
+    await this.page.locator('text=Chọn loại hình sản phẩm').first().click();
+    await this.page.getByRole('option', { name: 'Tất cả' }).waitFor({ state: 'visible' });
+    await this.page.getByRole('option', { name: 'Tất cả' }).click();
+
+    // Nhập một giá duy nhất cho tất cả loại hình
+    await this.page.getByPlaceholder('Nhập đơn giá').fill(TEST_DATA.rumorPricePerM2);
 
     return campaignName;
   }

@@ -17,7 +17,7 @@ export class LoginPage {
 
   async goto() {
     await this.page.goto('/');
-    await this.page.waitForLoadState('networkidle');
+    await this.emailInput.waitFor({ state: 'visible' });
   }
 
   async login(email: string, otp: string) {
