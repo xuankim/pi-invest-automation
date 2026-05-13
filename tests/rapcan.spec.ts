@@ -1,6 +1,6 @@
 import { test } from '../fixtures';
 import { RapCanPage } from '../pages/RapCanPage';
-import { getCampaignNameByProject, getBookingNameByCampaign, parseBookingDateTime } from '../helpers/CampaignHelper';
+import { getCampaignNameByProject, getCampaignsWithActiveRapCan, getBookingNameByCampaign, parseBookingDateTime } from '../helpers/CampaignHelper';
 import { TEST_DATA } from '../data/testData';
 
 const PROJECT_NAME = TEST_DATA.projectName;
@@ -12,9 +12,12 @@ test.describe('Ráp căn', () => {
    * Chạy riêng: npx playwright test --grep "ThemMoi RC"
    */
   test('[ThemMoi RC] Tạo mới đợt ráp căn', async ({ page }) => {
-    const campaignName = await getCampaignNameByProject(page, PROJECT_NAME);
+    // Lấy các chiến dịch đã có ráp căn active để bỏ qua
+    const activeCampaigns = await getCampaignsWithActiveRapCan(page);
+
+    const campaignName = await getCampaignNameByProject(page, PROJECT_NAME, activeCampaigns);
     if (!campaignName) {
-      test.skip(true, `Chưa có chiến dịch hợp lệ thuộc dự án ${PROJECT_NAME}`);
+      test.skip(true, `Chưa có chiến dịch hợp lệ (không có ráp căn active) thuộc dự án ${PROJECT_NAME}`);
     }
 
     const bookingInfo = await getBookingNameByCampaign(page, campaignName!);
